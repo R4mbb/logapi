@@ -1,23 +1,25 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
-from database import engine, metadata
+from database import engine, metadata, DATABASE_URL
 from models import logs
 from schemas import LogCreate, Log
 from databases import Database
+from contextlib import asynccontextmanager
+import datetime
 
 app = FastAPI()
 database = Database(DATABASE_URL)
 
 metadata.create_all(engine)
 
-@app.on_event("startup")
-async def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     await database.connect()
-
-@app.on_event("shutdown")
-async def shutdown():
+    yield
     await database.disconnect()
+
+app = FastAPI(lifespan=lifespan)
 
 @app.post("/api/logs", response_model=Log, status_code=201)
 async def create_log(log: LogCreate):
@@ -32,20 +34,23 @@ async def create_log(log: LogCreate):
 
 @app.get("/api/logs", response_model=list[Log])
 async def read_logs(start: str = None, end: str = None, level: str = None):
-    query = select([logs])
+    query = select(logs)  # 여기서 수정됨
     if start:
-        query = query.where(logs.c.timestamp >= start)
+        start_date = datetime.datetime.fromisoformat(start)
+        query = query.where(logs.c.timestamp >= start_date)
     if end:
-        query = query.where(logs.c.timestamp <= end)
+        end_date = datetime.datetime.fromisoformat(end)
+        query = query.where(logs.c.timestamp <= end_date)
     if level:
         query = query.where(logs.c.level == level)
     results = await database.fetch_all(query)
-    return results
+    return [dict(result) for result in results]
 
 @app.delete("/api/logs", status_code=204)
 async def delete_logs(before: str = None):
     if before:
-        query = logs.delete().where(logs.c.timestamp < before)
+        before_date = datetime.datetime.fromisoformat(before)
+        query = logs.delete().where(logs.c.timestamp < before_date)
         await database.execute(query)
     return
 
