@@ -1,0 +1,23 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    bird \
+    iproute2 \
+    tcpdump \
+    openssh-server \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY ./router02.sh /start.sh
+RUN chmod +x /start.sh
+
+RUN mkdir /var/run/sshd
+RUN mkdir -p /run/bird
+RUN echo 'root:dreamhack1234!' | chpasswd
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+EXPOSE 22 179
+
+ENTRYPOINT ["/start.sh"]

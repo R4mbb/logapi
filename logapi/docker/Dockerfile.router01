@@ -1,0 +1,26 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    bird \
+    iproute2 \
+    python3 \
+    python3-pip \
+    libtinfo6 \
+    libreadline8 \
+    libssh-4 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /run/bird
+
+COPY ./router01.sh /start.sh
+COPY ./send.py /send.py
+
+RUN pip install scapy netifaces
+
+EXPOSE 179
+
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]

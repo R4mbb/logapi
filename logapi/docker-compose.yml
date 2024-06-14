@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  logapi:
+    #    volume
+    image: logapi:1
+    container_name: logapi
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
