@@ -1,16 +1,18 @@
 import sqlite3
+from config import Config
 
 def init_db():
-    conn = sqlite3.connect("logs.db")
+    conn = sqlite3.connect(Config.DB_PATH)
     cursor = conn.cursor()
-
-    # 로그 테이블 생성
-    cursor.execute('''CREATE TABLE IF NOT EXISTS logs (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        timestamp TEXT,
-                        level TEXT,
-                        message TEXT
-                    )''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            level TEXT,
+            message TEXT,
+            source TEXT
+        )
+    ''')
     conn.commit()
     conn.close()
 

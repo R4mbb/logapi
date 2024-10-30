@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <canvas id="errorChart"></canvas>
+    <script>
+        fetch("/api/logs/stats")
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById("errorChart").getContext("2d");
+                new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: Object.keys(data.frequency),
+                        datasets: [{
+                            label: "Error Frequency",
+                            data: Object.values(data.frequency)
+                        }]
+                    }
+                });
+            });
+    </script>
+</body>
+</html>
+
